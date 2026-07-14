@@ -1,0 +1,40 @@
+name: JobXpress daily run
+
+on:
+  schedule:
+    # 09:00 UTC ≈ 7:30pm Adelaide. Adjust the cron to retime (uses UTC).
+    - cron: "0 9 * * *"
+  workflow_dispatch: {}   # lets you trigger it manually from the Actions tab
+
+permissions:
+  contents: write          # needed to commit seen.json back
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Run pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ADZUNA_APP_ID:     ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY:    ${{ secrets.ADZUNA_APP_KEY }}
+          JOOBLE_KEY:        ${{ secrets.JOOBLE_KEY }}
+          RESEND_API_KEY:    ${{ secrets.RESEND_API_KEY }}
+        run: python main.py
+
+      - name: Remember seen jobs
+        run: |
+          git config user.name  "jobxpress-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add seen.json
+          git commit -m "update seen jobs [skip ci]" || echo "nothing to commit"
+          git push || echo "nothing to push"
