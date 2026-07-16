@@ -61,7 +61,7 @@ def main():
     emailer.send(matches, stats)
 
     # remember everything we fetched so nothing repeats
-    store.save_seen(seen | {j["id"] for j in found})
+    store.save_seen(seen | {j["id"] for j in fresh})
     print("Done.")
 
 
