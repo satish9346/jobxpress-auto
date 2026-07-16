@@ -5,11 +5,11 @@ All knobs live here. Secrets come from environment variables
 import os
 
 # ---- Secrets (from environment) ----
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-ADZUNA_APP_ID     = os.environ.get("ADZUNA_APP_ID", "")
-ADZUNA_APP_KEY    = os.environ.get("ADZUNA_APP_KEY", "")
-JOOBLE_KEY        = os.environ.get("JOOBLE_KEY", "")
-RESEND_API_KEY    = os.environ.get("RESEND_API_KEY", "")
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+ADZUNA_APP_ID     = os.environ.get("ADZUNA_APP_ID", "").strip()
+ADZUNA_APP_KEY    = os.environ.get("ADZUNA_APP_KEY", "").strip()
+JOOBLE_KEY        = os.environ.get("JOOBLE_KEY", "").strip()
+RESEND_API_KEY    = os.environ.get("RESEND_API_KEY", "").strip()
 
 # ---- Tunables (safe to edit) ----
 MODEL          = os.environ.get("MODEL", "claude-sonnet-4-6")  # swap to claude-haiku-4-5 to cut cost ~3x
