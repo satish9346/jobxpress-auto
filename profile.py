@@ -54,23 +54,34 @@ CERTS: Selenium WebDriver with Java (Advanced), Cucumber BDD Framework
 # Graduate/intern terms below catch most GradConnection/GradAustralia roles,
 # which also post to Seek/Indeed/company pages that Adzuna & Jooble index.
 SEARCHES = [
-    # local first
-    {"what": "data scientist",            "where": "Adelaide"},
-    {"what": "data analyst",              "where": "Adelaide"},
-    {"what": "business intelligence",     "where": "Adelaide"},
-    {"what": "machine learning",          "where": "Adelaide"},
-    {"what": "qa automation engineer",    "where": "Adelaide"},
-    {"what": "test automation",           "where": "Adelaide"},
-    # graduate / entry-level / intern, nationwide
-    {"what": "graduate data analyst",     "where": "Australia"},
-    {"what": "data science graduate",     "where": "Australia"},
-    {"what": "graduate program data",     "where": "Australia"},
-    {"what": "data analyst internship",   "where": "Australia"},
-    {"what": "junior data analyst",       "where": "Australia"},
-    {"what": "graduate software tester",  "where": "Australia"},
-    {"what": "qa automation graduate",    "where": "Australia"},
-    {"what": "junior automation tester",  "where": "Australia"},
-    {"what": "sdet",                      "where": "Australia"},
+    # --- Testing / QA (all flavours) ---
+    {"what": "selenium automation tester",  "where": "Australia"},
+    {"what": "java automation engineer",    "where": "Australia"},
+    {"what": "qa automation engineer",      "where": "Adelaide"},
+    {"what": "test analyst",                "where": "Adelaide"},
+    {"what": "software tester",             "where": "Australia"},
+    {"what": "qa engineer",                 "where": "Australia"},
+    {"what": "graduate test analyst",       "where": "Australia"},
+    {"what": "junior software tester",      "where": "Australia"},
+
+    # --- Data Science / Data Analyst / SQL ---
+    {"what": "data analyst",                "where": "Adelaide"},
+    {"what": "data scientist",              "where": "Adelaide"},
+    {"what": "sql analyst",                 "where": "Australia"},
+    {"what": "sql developer",               "where": "Australia"},
+    {"what": "reporting analyst",           "where": "Australia"},
+    {"what": "junior data analyst",         "where": "Australia"},
+    {"what": "graduate data analyst",       "where": "Australia"},
+    {"what": "data science graduate",       "where": "Australia"},
+
+    # --- Internships / graduate & vacation programs ---
+    {"what": "data analyst intern",         "where": "Australia"},
+    {"what": "data science internship",     "where": "Australia"},
+    {"what": "software testing internship", "where": "Australia"},
+    {"what": "graduate program technology", "where": "Australia"},
+    {"what": "graduate program data",       "where": "Australia"},
+    {"what": "vacation program",            "where": "Australia"},
+    {"what": "summer vacationer program",   "where": "Australia"},
 ]
 
 # ---- Optional RSS feeds (compliant, no scraping) ----
