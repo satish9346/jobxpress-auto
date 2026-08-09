@@ -29,13 +29,15 @@ Return ONLY raw JSON (no markdown) of this exact shape:
 {{
  "fit_score": <integer 0-100, honest>,
  "recommended_profile": "Data Science" | "QA",
- "category": "Internship" | "Graduate program" | "Job",
+ "category": "Internship" | "Graduate program" | "Part-time" | "Casual" | "Vacation program" | "Job",
+ "student_priority": true | false,
  "verdict": "Strong match" | "Worth applying" | "Stretch" | "Skip",
  "reasons": [up to 3 short reasons tied to the candidate's real experience],
  "gaps": [up to 2 short honest gaps],
  {cover_clause}
 }}
-For "category": Internship = intern/placement role; Graduate program = structured grad program or graduate intake; otherwise Job.
+For "category": Internship = intern/placement; Graduate program = structured grad intake; Part-time / Casual = explicitly part-time or casual hours; Vacation program = summer/vacationer program; otherwise Job.
+Set "student_priority": true if the role is part-time, casual, an internship, a vacation program, or a graduate program — i.e. well-suited to a current Master's student. Otherwise false.
 
 --- JOB ---
 Title: {job['title']}
@@ -65,6 +67,7 @@ def score(job):
         print(f"  [score] {job['title'][:40]} failed: {e}")
         return None
     a.setdefault("category", "Job")
+    a.setdefault("student_priority", False)
     if a.get("fit_score", 0) >= config.COVER_FIT:
         try:
             a2 = _call(job, want_cover=True)

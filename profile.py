@@ -20,11 +20,13 @@ EXPERIENCE — Cognizant (Software Engineer, Dec 2023 - Aug 2025)
   premiums. Delivered weekly stakeholder insights.
 - VOYA: SQL + Python for backend data-pattern analysis & data-quality checks. Validated data flows & reporting.
 
-SKILLS: Python, SQL, Java | Pandas, NumPy, Excel(adv) | Power BI, Tableau, Matplotlib, Seaborn |
+SKILLS: Python, SQL, R, Java | Pandas, NumPy, Excel(adv) | Power BI, Tableau, Matplotlib, Seaborn, ggplot2 |
 Scikit-learn (regression, classification, clustering) | TensorFlow/Keras, LSTM, CNN, VGG16, ResNet50,
 InceptionV3 | Statistics, feature engineering, predictive modelling | Jupyter, Git
 
-PROJECTS: NSE/Nifty-50 analysis (Python/Pandas) | Pneumonia detection VGG16/CNN 98.4% |
+PROJECTS: Australian road fatalities visualisation (R, ggplot2) — cleaned & analysed 58,389 ARDD/BITRE
+records (1989-2026); built bar, grouped-bar & heatmap views; found afternoon/evening peak-traffic periods
+carry highest fatalities | NSE/Nifty-50 analysis (Python/Pandas) | Pneumonia detection VGG16/CNN 98.4% |
 Fake-news detection NLP/TF-IDF 94.3% | Weed identification CNN/OpenCV
 
 CERTS: IBM Data Analyst, Neural Networks & Deep Learning, Predictive Modeling, Power BI, Time Series
@@ -73,6 +75,11 @@ SEARCHES = [
     {"what": "junior data analyst",         "where": "Australia"},
     {"what": "graduate data analyst",       "where": "Australia"},
     {"what": "data science graduate",       "where": "Australia"},
+
+    # --- Student-friendly: part-time / casual ---
+    {"what": "part time data analyst",      "where": "Australia"},
+    {"what": "casual data entry",           "where": "Adelaide"},
+    {"what": "part time qa tester",         "where": "Australia"},
 
     # --- Internships / graduate & vacation programs ---
     {"what": "data analyst intern",         "where": "Australia"},

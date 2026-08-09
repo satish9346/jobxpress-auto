@@ -13,6 +13,13 @@ No passwords for any job board are ever used or needed.
 
 ---
 
+
+## What's new in this version
+- **PDF attachments** — tailored resume AND cover letter arrive as clean, ATS-friendly PDFs (still read each one before sending — you're accountable for every word).
+- **Application tracker** — every emailed match is appended to `applications.csv` in the repo. Open it in Excel; update the `status` column yourself (Applied / Interview / Rejected / Offer). It grows over time.
+- **"Find on company site" link** — each job gets a Google link to the company's own careers page, which usually gives better ATS pickup than aggregator redirects.
+- **Student-priority ranking** — part-time, casual, internships, vacation programs and graduate programs are flagged and sorted to the top of the email.
+
 ## What you need (all free tiers)
 
 | Key | Where to get it | Free? |
