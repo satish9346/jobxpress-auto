@@ -36,6 +36,16 @@ def main():
 
     seen = store.load_seen()
     fresh = [j for j in found if j["id"] not in seen][: config.MAX_NEW_JOBS]
+
+    # ---------- FREE MODE: no AI, just email the new listings ----------
+    if config.FREE_MODE:
+        print(f"2) FREE MODE — skipping AI. Emailing {len(fresh)} new listings…")
+        emailer.send_free(fresh, {"new": len(fresh), "scanned": len(found)})
+        tracker.append_free(fresh)
+        store.save_seen(seen | {j["id"] for j in fresh})
+        print("Done (free mode).")
+        return
+
     print(f"2) {len(fresh)} are new (cap {config.MAX_NEW_JOBS}). Scoring with {config.MODEL}…")
 
     matches = []

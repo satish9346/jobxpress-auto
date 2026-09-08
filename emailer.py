@@ -128,6 +128,51 @@ def _attach(name, data_bytes):
     return {"filename": name, "content": base64.b64encode(data_bytes).decode("ascii")}
 
 
+def send_free(jobs, stats):
+    """FREE MODE email — no AI. Just lists the new job postings with links."""
+    date = datetime.now().strftime("%A, %d %B %Y")
+    rows = []
+    for j in jobs:
+        apply_btn = (f'<a href="{j["link"]}" style="display:inline-block;background:#1F4FE0;color:#fff;'
+                     f'text-decoration:none;font-size:12px;font-weight:600;padding:6px 13px;border-radius:7px">Apply &rarr;</a>'
+                     if j.get("link") else "")
+        careers = (f'<a href="{_careers_link(j)}" style="display:inline-block;margin-left:6px;background:#fff;'
+                   f'border:1px solid #1F4FE0;color:#1F4FE0;text-decoration:none;font-size:12px;font-weight:600;'
+                   f'padding:5px 11px;border-radius:7px">Company site ↗</a>')
+        rows.append(f"""
+        <div style="border:1px solid #D7DEE7;border-radius:12px;padding:14px 16px;margin-bottom:10px;background:#fff">
+          <div style="font-size:15px;font-weight:700;color:#111A28">{j.get('title','')}</div>
+          <div style="font-size:12.5px;color:#6B788C;margin:3px 0 9px">{j.get('company') or '—'} &middot; {j.get('location') or ''} &middot; via {j.get('source','')}</div>
+          <div>{apply_btn}{careers}</div>
+        </div>""")
+    body = "".join(rows) or '<div style="padding:18px;color:#6B788C">No new listings today.</div>'
+    html = f"""
+    <div style="max-width:640px;margin:0 auto;font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#E7EBF0;padding:22px">
+      <div style="background:#141E30;border-radius:16px;padding:22px;color:#fff;margin-bottom:16px">
+        <div style="font-size:11px;letter-spacing:1.5px;color:#8FA3C4;font-weight:700">JOBXPRESS · FREE MODE · NEW LISTINGS</div>
+        <div style="font-size:13px;color:#9DB0CE;margin-top:4px">{date}</div>
+        <div style="display:flex;gap:26px;margin-top:16px">
+          <div><div style="font-size:24px;font-weight:700">{stats['new']}</div><div style="font-size:11px;color:#9DB0CE">NEW LISTINGS</div></div>
+          <div><div style="font-size:24px;font-weight:700">{stats['scanned']}</div><div style="font-size:11px;color:#9DB0CE">SCANNED</div></div>
+        </div>
+      </div>
+      {body}
+      <div style="text-align:center;font-size:11px;color:#6B788C;margin-top:14px">
+        Free mode: raw listings, no AI scoring. Paste any into your dashboard for a fit score + cover letter.
+      </div>
+    </div>"""
+    subject = f"{stats['new']} new job listings — {datetime.now().strftime('%d %b')} (free mode)"
+    r = requests.post("https://api.resend.com/emails",
+                      headers={"Authorization": f"Bearer {config.RESEND_API_KEY}"},
+                      json={"from": config.EMAIL_FROM, "to": [CANDIDATE["email"]],
+                            "subject": subject, "html": html}, timeout=60)
+    if r.status_code >= 300:
+        print(f"  [email] Resend error {r.status_code}: {r.text}")
+        return False
+    print("  free-mode email sent ✓")
+    return True
+
+
 def send(matches, stats):
     # build PDFs first (also sets *_pdf_name on each job so the email can note them)
     attachments, used = [], set()

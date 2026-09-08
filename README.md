@@ -20,6 +20,13 @@ No passwords for any job board are ever used or needed.
 - **"Find on company site" link** — each job gets a Google link to the company's own careers page, which usually gives better ATS pickup than aggregator redirects.
 - **Student-priority ranking** — part-time, casual, internships, vacation programs and graduate programs are flagged and sorted to the top of the email.
 
+
+## Two ways to run — paid (AI) or FREE
+
+**Default = cheap AI mode:** uses claude-haiku-4-5 (≈3× cheaper than Sonnet), scores up to 20 jobs, runs every 3 days. A few dollars lasts weeks. Top up at console.anthropic.com → Billing.
+
+**FREE mode (no AI, $0):** add a GitHub secret named `FREE_MODE` with value `1`. The pipeline then skips all AI — it just fetches new listings and emails them to you with Apply + "company site" links, and logs them to applications.csv. No Anthropic credits needed. Paste any interesting role into the dashboard for a fit score + cover letter. To go back to AI mode, delete the `FREE_MODE` secret (or set it to `0`).
+
 ## What you need (all free tiers)
 
 | Key | Where to get it | Free? |

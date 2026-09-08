@@ -71,11 +71,24 @@ def fetch_jooble(what, where):
             title = j.get("title", "")
             company = j.get("company", "")
             link = j.get("link", "")
+            loc = j.get("location", "") or ""
+            # Jooble often ignores the location filter and returns US/global roles.
+            # Keep only clearly-Australian listings (or ones with no location given).
+            import re as _re
+            ll = loc.lower()
+            au_words = ["australia", "adelaide", "sydney", "melbourne", "brisbane",
+                        "perth", "canberra", "hobart", "darwin", "gold coast",
+                        "newcastle", "wollongong", "geelong", "remote"]
+            au_states = ["nsw", "vic", "qld", "wa", "sa", "act", "tas", "nt"]
+            au_hint = any(w in ll for w in au_words) or \
+                      any(_re.search(r"\b" + s + r"\b", ll) for s in au_states)
+            if loc.strip() and not au_hint:
+                continue
             out.append({
                 "id": _jid(title, company, link),
                 "title": title,
                 "company": company,
-                "location": j.get("location", ""),
+                "location": loc,
                 "desc": _clean(j.get("snippet", "")),
                 "link": link,
                 "source": "Jooble",

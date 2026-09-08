@@ -36,3 +36,21 @@ def append(matches):
                 j.get("title", ""), j.get("company", ""), j.get("location", ""),
                 j.get("source", ""), j.get("link", ""), _careers_search(j),
             ])
+
+
+def append_free(jobs):
+    """Free-mode logging — no AI fields, just the listing facts."""
+    if not jobs:
+        return
+    exists = os.path.exists(config.CSV_FILE)
+    today = datetime.now().strftime("%Y-%m-%d")
+    with open(config.CSV_FILE, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if not exists:
+            w.writerow(HEADERS)
+        for j in jobs:
+            w.writerow([
+                today, "Listed", "", "", "",
+                j.get("title", ""), j.get("company", ""), j.get("location", ""),
+                j.get("source", ""), j.get("link", ""), _careers_search(j),
+            ])
