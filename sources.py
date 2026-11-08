@@ -4,6 +4,8 @@ no login, ToS-friendly. They surface listings that originate on
 Seek / Indeed / LinkedIn / company sites.
 """
 import hashlib
+import re
+
 import requests
 import config
 
@@ -16,6 +18,37 @@ def _jid(title, company, url):
     if url:
         base = url.split("?")[0].lower()
     return hashlib.sha1(base.encode("utf-8")).hexdigest()[:16]
+
+
+AU_PLACES = ["australia", "adelaide", "sydney", "melbourne", "brisbane", "perth", "canberra", "hobart",
+             "darwin", "gold coast", "newcastle", "wollongong", "geelong", "sunshine coast", "townsville",
+             "cairns", "toowoomba", "ballarat", "bendigo", "launceston", "mawson lakes", "port adelaide"]
+AU_STATE_NAMES = ["new south wales", "victoria", "queensland", "western australia", "south australia",
+                  "tasmania", "northern territory", "australian capital territory"]
+AU_CODES = ["nsw", "vic", "qld", "sa", "tas", "act", "nt"]          # "wa" handled separately (clashes with Washington)
+FOREIGN = ["united states", "usa", "u.s.", "canada", "united kingdom", " uk", "england", "india", "new zealand",
+           "singapore", "philippines", "seattle", "redmond", "bellevue", "new york", "california", "texas",
+           "london", "toronto", "bangalore", "bengaluru", "hyderabad", "auckland", "dubai"]
+US_STATE = re.compile(r",\s*(A[LKZR]|C[AOT]|DE|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|"
+                      r"PA|RI|S[CD]|T[NX]|UT|V[AT]|W[AIVY]|DC)\b")
+
+
+def is_australian(location, text=""):
+    """True for Australian or unspecified locations. Overseas roles waste applications."""
+    loc = (location or "").strip()
+    ll = f" {loc.lower()} "
+    if not loc:
+        blob = (text or "").lower()
+        return not any(w in blob for w in ["seattle", "united states", " usa ", "h-1b", "green card"])
+    if any(f in ll for f in FOREIGN) or (US_STATE.search(loc) and "perth" not in ll):
+        return False
+    if any(p in ll for p in AU_PLACES + AU_STATE_NAMES):
+        return True
+    if any(re.search(r"\b" + c + r"\b", ll) for c in AU_CODES):
+        return True
+    if re.search(r"\bwa\b", ll):                    # only Western Australia if nothing points overseas
+        return not US_STATE.search(loc)
+    return "remote" in ll and "australia" in (text or "").lower()
 
 
 def _clean(text, limit=4000):
@@ -72,18 +105,6 @@ def fetch_jooble(what, where):
             company = j.get("company", "")
             link = j.get("link", "")
             loc = j.get("location", "") or ""
-            # Jooble often ignores the location filter and returns US/global roles.
-            # Keep only clearly-Australian listings (or ones with no location given).
-            import re as _re
-            ll = loc.lower()
-            au_words = ["australia", "adelaide", "sydney", "melbourne", "brisbane",
-                        "perth", "canberra", "hobart", "darwin", "gold coast",
-                        "newcastle", "wollongong", "geelong", "remote"]
-            au_states = ["nsw", "vic", "qld", "wa", "sa", "act", "tas", "nt"]
-            au_hint = any(w in ll for w in au_words) or \
-                      any(_re.search(r"\b" + s + r"\b", ll) for s in au_states)
-            if loc.strip() and not au_hint:
-                continue
             out.append({
                 "id": _jid(title, company, link),
                 "title": title,
@@ -137,6 +158,10 @@ def gather(searches, rss_feeds=None):
                 continue
             seen.add(job["id"])
             jobs.append(job)
+    if config.AUSTRALIA_ONLY:
+        before = len(jobs)
+        jobs = [j for j in jobs if is_australian(j["location"], j["desc"])]
+        print(f"  dropped {before - len(jobs)} overseas listings")
     for url in (rss_feeds or []):
         print(f"  rss: {url[:50]}")
         for job in fetch_rss(url):

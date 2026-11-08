@@ -9,47 +9,8 @@ CANDIDATE = {
     "email": "gsatishreddy2001@gmail.com",  # daily briefing lands here
 }
 
-# ---- The two profiles Claude matches each job against ----
-PROFILE_DS = """\
-MASTER OF DATA SCIENCE (in progress) — University of Adelaide, 2025
-B.Tech ECE — Sree Vidyanikethan Engineering College (8.5/10), 2023
-
-EXPERIENCE — Cognizant (Software Engineer, Dec 2023 - Aug 2025)
-- MetLife: Analysed/validated 50,000+ policyholder records with SQL & Excel, improved data accuracy 80%.
-  Automated data-cleaning in Python (saved 80+ hrs/month). Built Power BI dashboards for claims, renewals,
-  premiums. Delivered weekly stakeholder insights.
-- VOYA: SQL + Python for backend data-pattern analysis & data-quality checks. Validated data flows & reporting.
-
-SKILLS: Python, SQL, R, Java | Pandas, NumPy, Excel(adv) | Power BI, Tableau, Matplotlib, Seaborn, ggplot2 |
-Scikit-learn (regression, classification, clustering) | TensorFlow/Keras, LSTM, CNN, VGG16, ResNet50,
-InceptionV3 | Statistics, feature engineering, predictive modelling | Jupyter, Git
-
-PROJECTS: Australian road fatalities visualisation (R, ggplot2) — cleaned & analysed 58,389 ARDD/BITRE
-records (1989-2026); built bar, grouped-bar & heatmap views; found afternoon/evening peak-traffic periods
-carry highest fatalities | NSE/Nifty-50 analysis (Python/Pandas) | Pneumonia detection VGG16/CNN 98.4% |
-Fake-news detection NLP/TF-IDF 94.3% | Weed identification CNN/OpenCV
-
-CERTS: IBM Data Analyst, Neural Networks & Deep Learning, Predictive Modeling, Power BI, Time Series
-"""
-
-PROFILE_QA = """\
-MASTER OF DATA SCIENCE (in progress) — University of Adelaide, 2025
-B.Tech ECE — Sree Vidyanikethan Engineering College (8.5/10), 2023
-
-EXPERIENCE — Cognizant (Software Engineer, Dec 2023 - Aug 2025)
-- VOYA (insurance platform): Automated 500+ test cases with Selenium WebDriver (Java) — regression
-  efficiency +75%. Data-driven testing with Apache POI (-60% manual effort). Integrated TestNG + Cucumber
-  BDD (95% coverage). Logged 250+ defects -> 40% faster releases.
-- MetLife: SQL/Excel validation of 50,000+ records, Python automation, Power BI reporting.
-
-SKILLS: Selenium WebDriver(Java), TestNG, Cucumber BDD, Maven, Jenkins, CI/CD | Manual testing, test
-cases, defect reporting, Jira, Confluence | API testing: Postman, REST, JSON, XML | Java, Python |
-SQL, MySQL | ExtentReports
-
-PROJECTS: Automating Practo.com hospital search (Selenium/Java/TestNG/ExtentReports) — cross-browser, CSV-driven
-
-CERTS: Selenium WebDriver with Java (Advanced), Cucumber BDD Framework
-"""
+# Your experience, projects and skills now live in facts.py (one source of truth for
+# scoring, resumes and cover letters). Edit facts.py, not this file.
 
 # ---- What to search for each night (title, where) ----
 # 'where' is passed to Adzuna; Jooble uses location too.
@@ -75,6 +36,10 @@ SEARCHES = [
     {"what": "junior data analyst",         "where": "Australia"},
     {"what": "graduate data analyst",       "where": "Australia"},
     {"what": "data science graduate",       "where": "Australia"},
+    {"what": "power bi analyst",            "where": "Australia"},
+    {"what": "business intelligence analyst", "where": "Adelaide"},
+    {"what": "insurance data analyst",      "where": "Australia"},
+    {"what": "data quality analyst",        "where": "Australia"},
 
     # --- Student-friendly: part-time / casual ---
     {"what": "part time data analyst",      "where": "Australia"},

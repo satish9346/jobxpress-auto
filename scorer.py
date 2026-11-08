@@ -1,43 +1,44 @@
 """
-Claude scores each job against both profiles and writes a tailored
-cover letter for strong matches. Uses the official Anthropic SDK.
+Claude scores each job against both career tracks (data and QA), built from facts.py.
+Writing resumes and cover letters is done by resume_agent.py, for top matches only.
 """
 import json
+
 import anthropic
+
 import config
-from profile import PROFILE_DS, PROFILE_QA
+import facts
 
-client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY) if config.ANTHROPIC_API_KEY else None
 
 
-def _prompt(job, want_cover):
-    cover_clause = (
-        '"cover_letter": "tailored 230-300 word first-person cover letter as Satish, '
-        'Australian tone, references real projects/metrics, ready to send"'
-        if want_cover else '"cover_letter": ""'
-    )
-    return f"""You are a senior Australian tech recruiter. Compare the candidate to a job.
-The candidate has TWO profiles — pick whichever fits best.
+def _prompt(job):
+    return f"""You are a senior Australian tech recruiter screening for one candidate. Be honest and strict.
 
-DATA SCIENCE PROFILE:
-{PROFILE_DS}
+DATA TRACK PROFILE:
+{facts.profile_text("data")}
 
-QA / AUTOMATION PROFILE:
-{PROFILE_QA}
+QA TRACK PROFILE:
+{facts.profile_text("qa")}
 
-Return ONLY raw JSON (no markdown) of this exact shape:
+Rules:
+- The candidate is in Adelaide on a student visa (full work rights expected mid 2027). Jobs outside Australia score 0, verdict "Skip".
+- Roles that require Australian citizenship, permanent residency or a security clearance score below 20, verdict "Skip".
+- Roles needing 4+ years or senior/lead/manager level score below 35.
+- Graduate, junior, internship and entry-level data, BI, reporting or QA roles in Adelaide or remote Australia score highest.
+
+Return ONLY raw JSON (no markdown):
 {{
- "fit_score": <integer 0-100, honest>,
+ "fit_score": <integer 0-100>,
  "recommended_profile": "Data Science" | "QA",
  "category": "Internship" | "Graduate program" | "Part-time" | "Casual" | "Vacation program" | "Job",
  "student_priority": true | false,
  "verdict": "Strong match" | "Worth applying" | "Stretch" | "Skip",
  "reasons": [up to 3 short reasons tied to the candidate's real experience],
- "gaps": [up to 2 short honest gaps],
- {cover_clause}
+ "gaps": [up to 2 short honest gaps]
 }}
-For "category": Internship = intern/placement; Graduate program = structured grad intake; Part-time / Casual = explicitly part-time or casual hours; Vacation program = summer/vacationer program; otherwise Job.
-Set "student_priority": true if the role is part-time, casual, an internship, a vacation program, or a graduate program — i.e. well-suited to a current Master's student. Otherwise false.
+"category": Internship = intern/placement; Graduate program = structured grad intake; Part-time / Casual = explicitly part-time or casual hours; Vacation program = summer/vacationer program; otherwise Job.
+"student_priority": true for part-time, casual, internship, vacation or graduate programs.
 
 --- JOB ---
 Title: {job['title']}
@@ -47,73 +48,18 @@ Description:
 {job['desc']}"""
 
 
-def _call(job, want_cover):
-    msg = client.messages.create(
-        model=config.MODEL,
-        max_tokens=1400 if want_cover else 500,
-        messages=[{"role": "user", "content": _prompt(job, want_cover)}],
-    )
-    txt = "".join(b.text for b in msg.content if b.type == "text")
-    txt = txt.replace("```json", "").replace("```", "").strip()
-    s, e = txt.find("{"), txt.rfind("}")
-    return json.loads(txt[s:e + 1])
-
-
 def score(job):
-    """Two-pass to save tokens: cheap score first, cover letter only if it clears the bar."""
     try:
-        a = _call(job, want_cover=False)
+        msg = client.messages.create(model=config.MODEL, max_tokens=500,
+                                     messages=[{"role": "user", "content": _prompt(job)}])
+        txt = "".join(b.text for b in msg.content if b.type == "text")
+        txt = txt.replace("```json", "").replace("```", "").strip()
+        a = json.loads(txt[txt.find("{"): txt.rfind("}") + 1])
     except Exception as e:
         print(f"  [score] {job['title'][:40]} failed: {e}")
         return None
     a.setdefault("category", "Job")
     a.setdefault("student_priority", False)
-    if a.get("fit_score", 0) >= config.COVER_FIT:
-        try:
-            a2 = _call(job, want_cover=True)
-            a["cover_letter"] = a2.get("cover_letter", "")
-        except Exception as e:
-            print(f"  [cover] {job['title'][:40]} failed: {e}")
-            a["cover_letter"] = ""
-    else:
-        a["cover_letter"] = ""
+    a["fit_score"] = max(0, min(100, int(a.get("fit_score", 0))))
+    a["cover_letter"] = ""   # written by resume_agent for top matches
     return a
-
-
-def tailor_resume(job, analysis):
-    """
-    Rewrites the chosen base resume to mirror THIS job description:
-    summary line, skill ordering, bullet emphasis. Facts stay 100% true —
-    nothing invented, nothing exaggerated. Returns plain-text resume.
-    """
-    base = PROFILE_DS if analysis.get("recommended_profile") == "Data Science" else PROFILE_QA
-    prompt = f"""You are an expert Australian resume writer. Tailor the candidate's resume to the job below.
-
-STRICT RULES:
-- Use ONLY facts from the base resume. Never invent skills, employers, dates, or metrics.
-- Rewrite the professional summary to mirror the job title and its top requirements.
-- Reorder skills so the job's keywords appear first (ATS-friendly, only if the candidate truly has them).
-- Re-emphasise the experience bullets most relevant to this job; trim the least relevant.
-- Keep it one page worth of text, plain text (no markdown), Australian English.
-- Header: name, phone +61 485 511 607, email gsatishreddy2001@gmail.com, Adelaide SA, LinkedIn.
-
-BASE RESUME:
-{base}
-
---- JOB ---
-Title: {job['title']}
-Company: {job['company']}
-Description:
-{job['desc']}
-
-Return ONLY the tailored resume text, nothing else."""
-    try:
-        msg = client.messages.create(
-            model=config.MODEL,
-            max_tokens=1600,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return "".join(b.text for b in msg.content if b.type == "text").strip()
-    except Exception as e:
-        print(f"  [tailor] {job['title'][:40]} failed: {e}")
-        return ""

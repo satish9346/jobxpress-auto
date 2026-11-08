@@ -29,6 +29,9 @@ jobs:
           ADZUNA_APP_KEY:    ${{ secrets.ADZUNA_APP_KEY }}
           JOOBLE_KEY:        ${{ secrets.JOOBLE_KEY }}
           RESEND_API_KEY:    ${{ secrets.RESEND_API_KEY }}
+          CANDIDATE_PHONE:   ${{ secrets.CANDIDATE_PHONE }}
+          WORK_RIGHTS:       ${{ vars.WORK_RIGHTS }}
+          PORTFOLIO_URL:     ${{ vars.PORTFOLIO_URL }}
         run: python main.py
 
       - name: Remember seen jobs
