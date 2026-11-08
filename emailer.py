@@ -10,7 +10,7 @@ from datetime import datetime
 from urllib.parse import quote_plus
 import requests
 import config
-import pdfgen
+import docgen
 from profile import CANDIDATE
 
 ROUTE_COLOR = {"Data Science": "#6B4FD6", "QA": "#1A7BC0"}
@@ -50,6 +50,9 @@ def _job_block(j):
         gaps = ('<div style="font-size:12px;color:#9c5c06;margin-top:6px">Watch: '
                 + "; ".join(a["gaps"]) + "</div>")
     cover = ""
+    pack = j.get("pack")
+    if pack:
+        a["cover_letter"] = "\n\n".join(v for v in pack["cover"].values() if v)
     if a.get("cover_letter"):
         cover = ('<details style="margin-top:10px">'
                  '<summary style="cursor:pointer;font-size:12px;font-weight:600;color:#1F4FE0">'
@@ -64,15 +67,20 @@ def _job_block(j):
                    f'background:#fff;border:1px solid #1F4FE0;color:#1F4FE0;text-decoration:none;'
                    f'font-size:13px;font-weight:600;padding:7px 14px;border-radius:8px">'
                    f'Find on company site ↗</a>')
-    files = []
-    if j.get("resume_pdf_name"):
-        files.append("resume")
-    if j.get("cover_pdf_name"):
-        files.append("cover letter")
     files_note = ""
-    if files:
-        files_note = ('<div style="font-size:12px;font-weight:700;color:#0E9F6E;margin-top:10px">'
-                      f'📎 Attached as PDF: {" + ".join(files)} — read before sending</div>')
+    if j.get("files"):
+        k = pack["keywords"]
+        kc = "#0E9F6E" if k["coverage"] >= 70 else "#D9810C"
+        add = (f'<div style="color:#3D4B61">Add if true: {", ".join(k["could_add"])}</div>' if k["could_add"] else "")
+        gap = (f'<div style="color:#9c5c06">Real gaps: {", ".join(k["gaps"])}</div>' if k["gaps"] else "")
+        fixed = (f'<div style="color:#6B788C">Fact check repaired {len(pack["problems"])} item(s)</div>'
+                 if pack["problems"] else '<div style="color:#6B788C">Fact check: all claims match your facts file</div>')
+        files_note = (f'<div style="font-size:12px;margin-top:10px;line-height:1.6">'
+                      f'<div style="font-weight:700;color:#0E9F6E">📎 Attached: {", ".join(j["files"])}</div>'
+                      f'<div style="font-weight:700;color:{kc}">ATS keyword match: {k["coverage"]}% '
+                      f'({len(k["matched"])} of {len(pack["job_keywords"])} keywords from the ad)</div>'
+                      f'{add}{gap}{fixed}'
+                      f'<div style="color:#6B788C">Read both before sending. Edit the .docx if anything is off.</div></div>')
     return f"""
     <div style="border:1px solid #D7DEE7;border-radius:14px;padding:18px 20px;margin-bottom:14px;background:#fff">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
@@ -180,28 +188,25 @@ def send(matches, stats):
     def uniq(name):
         base, n = name, 2
         while name in used:
-            name = base.replace(".pdf", f"_{n}.pdf")
+            stem, ext = base.rsplit(".", 1)
+            name = f"{stem}_{n}.{ext}"
             n += 1
         used.add(name)
         return name
 
     for j in matches:
-        slug = _slug(j)
-        if j.get("tailored_resume"):
-            try:
-                nm = uniq(f"Satish_Resume_{slug}.pdf")
-                attachments.append(_attach(nm, pdfgen.resume_pdf(j["tailored_resume"])))
-                j["resume_pdf_name"] = nm
-            except Exception as e:
-                print(f"  [pdf-resume] {j['title'][:30]} failed: {e}")
-        cl = j.get("analysis", {}).get("cover_letter")
-        if cl:
-            try:
-                nm = uniq(f"Satish_CoverLetter_{slug}.pdf")
-                attachments.append(_attach(nm, pdfgen.cover_pdf(cl)))
-                j["cover_pdf_name"] = nm
-            except Exception as e:
-                print(f"  [pdf-cover] {j['title'][:30]} failed: {e}")
+        if not j.get("pack"):
+            continue
+        try:
+            files = docgen.render_all(j["pack"])
+        except Exception as ex:
+            print(f"  [docs] {j['title'][:30]} failed: {ex}")
+            continue
+        j["files"] = []
+        for name, data in files.items():
+            name = uniq(name)
+            attachments.append(_attach(name, data))
+            j["files"].append(name)
 
     html = build_html(matches, stats)
     subject = f"{stats['new']} new job matches — {datetime.now().strftime('%d %b')}"
@@ -216,5 +221,5 @@ def send(matches, stats):
     if r.status_code >= 300:
         print(f"  [email] Resend error {r.status_code}: {r.text}")
         return False
-    print(f"  email sent ✓ ({len(attachments)} PDF attachments)")
+    print(f"  email sent ✓ ({len(attachments)} attachments)")
     return True

@@ -12,6 +12,7 @@ import store
 import scorer
 import emailer
 import tracker
+import resume_agent
 from profile import SEARCHES, RSS_FEEDS
 
 
@@ -63,14 +64,20 @@ def main():
     # student-priority roles first, then highest fit
     matches.sort(key=_priority, reverse=True)
 
-    # Tailored resume for the top matches above the threshold
+    # Resume Tailor agent: verified resume + cover letter (DOCX and PDF) for the top matches
     to_tailor = [m for m in matches
                  if m["analysis"]["fit_score"] >= config.TAILOR_FIT][: config.MAX_TAILORED]
-    print(f"3) Tailoring resumes for {len(to_tailor)} top matches…")
+    print(f"3) Tailoring resume + cover letter for {len(to_tailor)} top matches with {config.WRITE_MODEL}…")
     for m in to_tailor:
-        m["tailored_resume"] = scorer.tailor_resume(m, m["analysis"])
-        if m["tailored_resume"]:
-            print(f"   resume tailored: {m['title'][:46]}")
+        pack = resume_agent.build_pack(m)
+        if not pack:
+            continue
+        if pack["requires_citizenship_or_clearance"]:
+            m["analysis"]["gaps"] = (["Ad asks for citizenship, PR or clearance: check before applying"]
+                                     + m["analysis"].get("gaps", []))[:3]
+        m["pack"] = pack
+        k = pack["keywords"]
+        print(f"   pack ready: {m['title'][:40]}  keywords {k['coverage']}%  fixes {len(pack['problems'])}")
 
     stats = {
         "new": len(matches),
